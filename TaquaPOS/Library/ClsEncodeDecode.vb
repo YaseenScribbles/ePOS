@@ -4,7 +4,7 @@
 
         Dim Tmp As String = ""
 
-        For i As SByte = 1 To InputValue.Length
+        For i As Byte = 1 To InputValue.Length
             Tmp &= Chr(Asc(Mid(InputValue, i, i)) + 17)
         Next
 
@@ -16,7 +16,7 @@
 
         Dim Tmp As String = ""
 
-        For i As SByte = 1 To InputValue.Length
+        For i As Byte = 1 To InputValue.Length
             Tmp &= Chr(Asc(Mid(InputValue, i, i)) - 17)
         Next
 

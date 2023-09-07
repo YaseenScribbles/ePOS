@@ -1,5 +1,6 @@
 ﻿'*********************** In the name of Allah, Most Merciful, Most Compassionate ****************
 Imports System.Data.SqlClient
+Imports System.Threading.Tasks
 Imports Microsoft.VisualBasic.Compatibility
 Public Class ESSA
 
@@ -92,6 +93,17 @@ Public Class ESSA
         End Try
 
     End Sub
+
+    Public Shared Async Function OpenConnectionAsync() As Task
+
+        Try
+            Con = New SqlConnection(ConStr)
+            Await Con.OpenAsync()
+        Catch ex As SqlException
+            MsgBox(ex.Message, MsgBoxStyle.Critical)
+        End Try
+
+    End Function
 
     Public Shared Function FindGridIndex(ByVal DGV As DataGridView, ByVal FindCol As Byte, ByVal FindValue As String) As Integer
 
@@ -383,5 +395,14 @@ Public Class ESSA
 
     End Function
 
+    Public Shared Async Function GenerateData(ByVal iSQL As String) As Threading.Tasks.Task(Of Object)
+
+        Await ESSA.OpenConnectionAsync()
+        Using Cmd As New SqlCommand(iSQL, Con)
+            Return Await Cmd.ExecuteScalarAsync
+        End Using
+        Con.Close()
+
+    End Function
 
 End Class

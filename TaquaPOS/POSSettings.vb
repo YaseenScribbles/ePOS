@@ -45,10 +45,16 @@ Public Class POSSettings
 
         End If
 
-        Dim ConnectionString As String = "Data Source=" & txtSqlserver.Text.Trim & ";" _
-                                       & "Initial Catalog=" & txtDatabase.Text.Trim & ";" _
-                                       & "User ID=" & txtUsername.Text.Trim & ";" _
-                                       & "Password=" & txtPassword.Text & ";"
+        Dim ConnectionString As String = "Server=" & txtSqlserver.Text.Trim & ";" _
+                         & "Initial Catalog=" & txtDatabase.Text.Trim & ";Persist Security Info=False;" _
+                         & "User ID=" & txtUsername.Text.Trim & ";" _
+                         & "Password=" & txtPassword.Text & ";" _
+                         & "MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+        'Dim ConnectionString As String = "Data Source=" & txtSqlserver.Text.Trim & ";" _
+        '                               & "Initial Catalog=" & txtDatabase.Text.Trim & ";" _
+        '                               & "User ID=" & txtUsername.Text.Trim & ";" _
+        '                               & "Password=" & txtPassword.Text & ";"
 
         Dim XTag As String = "<POSSettings>" & vbCrLf _
                            & "<DBSettings>" & ClsEncodeDecode.Encode(ConnectionString) & "</DBSettings>" & vbCrLf _

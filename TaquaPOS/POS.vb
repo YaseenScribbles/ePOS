@@ -1,8 +1,8 @@
 ﻿'***************************** In the name of Allah, Most Merciful, Most Compassionate ****************************
 Imports System.Data.SqlClient
-Imports System.Runtime.InteropServices
-Imports ZXing
-Imports System.Drawing
+Imports System.Threading.Tasks
+Imports System.Net.Http
+Imports System.Net
 Imports System.IO
 
 Public Class POS
@@ -33,6 +33,7 @@ Public Class POS
     Private FreshDiscount As Boolean = False
     Private billDt As Date
     Private billTime As DateTime
+    Private shopNumber As String
 
     Public Sub LoadTheme()
 
@@ -78,8 +79,8 @@ Public Class POS
 
         For Each ctl As Control In pnlStatus.Controls
 
-            If TypeOf (ctl) Is Label Then
-                CType(ctl, Label).ForeColor = StatusForeColor
+            If TypeOf ctl Is Windows.Forms.Label Then
+                ctl.ForeColor = StatusForeColor
             End If
 
         Next
@@ -176,7 +177,7 @@ Public Class POS
 
         For Each ctl As Control In pnl.Controls
 
-            If TypeOf (ctl) Is Label Then
+            If TypeOf (ctl) Is Windows.Forms.Label Then
                 ctl.ForeColor = ButtonForeColor
             End If
 
@@ -387,7 +388,7 @@ Public Class POS
 
     End Sub
 
-    Private Sub POS_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Async Sub POS_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
 
         TempFilePath = Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.Machine) & "\"
 
@@ -395,11 +396,12 @@ Public Class POS
             CreatePrintBAT()
         End If
 
-        SQL = "select shopid,shopname from shops where shopcode='" & ShopCd & "'"
+        SQL = "select shopid,shopname,phone from shops where shopcode='" & ShopCd & "'"
         With ESSA.OpenReader(SQL)
             If .Read Then
                 ShopID = .Item(0)
                 ShopNm = .GetString(1).Trim
+                shopNumber = .GetString(2).Trim
             End If
             .Close()
         End With
@@ -470,6 +472,8 @@ Public Class POS
 
         LoadSalesPersons()
 
+        Await GetSMSApiSettings()
+
     End Sub
 
     Private Sub LoadSalesPersons()
@@ -525,7 +529,7 @@ Public Class POS
                 txtQty.Focus()
             Else
 
-                SQL = "select m.pluid,plucode,pluname,units,retailprice,v.stock,m.discount from productmaster m,v_stockpos v where m.pluid=v.pluid and v.location_id = " & ShopID & " " _
+                SQL = "select m.pluid,plucode,pluname,units,pm.retailprice,v.stock,pm.discount from productmaster m,v_stockpos v,pricemaster pm where m.pluid=v.pluid and pm.pluid = v.pluid and pm.shopid = " & ShopID & " and v.location_id = " & ShopID & " " _
                     & "and plucode='" & txtCode.Text.Trim & "'"
                 With ESSA.OpenReader(SQL)
                     If .Read Then
@@ -1016,7 +1020,7 @@ Public Class POS
 
     Private Sub HoldBill(Optional CsName As String = "")
 
-        Dim iHoldID As Short = 0
+        Dim iHoldID As Integer = 0
 
         ESSA.OpenConnection()
         Dim Cmd = Con.CreateCommand
@@ -1078,7 +1082,7 @@ Public Class POS
 
     End Sub
 
-    Public Sub SaveBill()
+    Public Async Sub SaveBill()
 
         ESSA.OpenConnection()
         Dim Cmd = Con.CreateCommand
@@ -1119,8 +1123,8 @@ Public Class POS
             SQL = "insert into billmaster values (" _
                 & BillID & "," _
                 & BillNo & ",'" _
-                & IIf(ISAdmin, Format(billDt, "yyyy-MM-dd"), Format(Now.Date, "yyyy-MM-dd")) & "','" _
-                & IIf(ISAdmin, Format(billTime, "yyyy-MM-dd HH:mm:ss"), Format(Now, "yyyy-MM-dd HH:mm:ss")) & "'," _
+                & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd")) & "','" _
+                & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now, "yyyy-MM-dd HH:mm:ss"), Format(billTime, "yyyy-MM-dd HH:mm:ss")), Format(Now, "yyyy-MM-dd HH:mm:ss")) & "'," _
                 & nTermID & "," _
                 & Val(lblQty.Text) & "," _
                 & Val(lblNetAmt.Text) & "," _
@@ -1139,7 +1143,7 @@ Public Class POS
 
                 SQL = "insert into billdetails values (" _
                     & BillID & ",'" _
-                    & IIf(ISAdmin, Format(billDt, "yyyy-MM-dd"), Format(Now.Date, "yyyy-MM-dd")) & "'," _
+                    & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd")) & "'," _
                     & Val(TG.Item(0, i).Value) & "," _
                     & Val(TG.Item(5, i).Value) & ",0," _
                     & Val(TG.Item(11, i).Value) & "," _
@@ -1182,7 +1186,7 @@ Public Class POS
                     getdate(),
                     1,
                     {nTermID},
-                    '{IIf(ISAdmin, Format(billDt, "yyyy-MM-dd"), Format(Now.Date, "yyyy-MM-dd"))}',
+                    '{IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd"))}',
                     0,
                     1)"
 
@@ -1205,7 +1209,7 @@ Public Class POS
                     getdate(),
                     {IIf(Val(TxtCashNew.Text) > 0, 2, 1)},
                     {nTermID},
-                    '{IIf(ISAdmin, Format(billDt, "yyyy-MM-dd"), Format(Now.Date, "yyyy-MM-dd"))}',
+                    '{IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd"))}',
                     0,
                     1)"
 
@@ -1228,7 +1232,7 @@ Public Class POS
                     getdate(),
                     {IIf(Val(TxtCashNew.Text) > 0, IIf(Val(TxtCardNew.Text) > 0, 3, 2), 1)},
                     {nTermID},
-                    '{IIf(ISAdmin, Format(billDt, "yyyy-MM-dd"), Format(Now.Date, "yyyy-MM-dd"))}',
+                    '{IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd"))}',
                     0,
                     1)"
 
@@ -1252,7 +1256,7 @@ Public Class POS
                     & Format(CDate(TGPmt.Item(3, j).Value), "yyyy-MM-dd") & "'," _
                     & j + 1 & "," _
                     & nTermID & ",'" _
-                    & IIf(ISAdmin, Format(billDt, "yyyy-MM-dd"), Format(Now.Date, "yyyy-MM-dd")) & "',0,1)"
+                    & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd")) & "',0,1)"
 
                     Cmd.CommandText = SQL
                     Cmd.ExecuteNonQuery()
@@ -1292,6 +1296,13 @@ Public Class POS
         If chkEP.Checked = True Then
             'PrintBill(BillID, BillType)
             PrintBillUsingCrystalReport(BillID, "Original")
+        End If
+
+        If Not MobileNo.Trim = String.Empty Then
+            If Not MsgBox("Send Sms..?", MsgBoxStyle.Question + MessageBoxButtons.YesNo) = MsgBoxResult.No Then
+                Await SendSmsAsync(MobileNo, ShopNm, Format(Now.Date, "dd-MM-yyyy"), shopNumber)
+                'Await SendSmsAsync(MobileNo, ShopNm, Format(Now.Date, "dd-MM-yyyy"))
+            End If
         End If
 
         RefreshBill()
@@ -1415,9 +1426,10 @@ Public Class POS
             TTip.Show("No items to generate to bill..!", btnStore, 0, 25, 2000)
             Exit Sub
         ElseIf cmbCustomer.SelectedIndex = -1 Then
-            TTip.Show("Customer not selected..!", cmbCustomer, 0, 25, 2000)
-            cmbCustomer.Focus()
-            Exit Sub
+            'TTip.Show("Customer not selected..!", cmbCustomer, 0, 25, 2000)
+            'cmbCustomer.Focus()
+            'Exit Sub
+            cmbCustomer.SelectedValue = customerId
         End If
 
         '// Insert Items For Sales Commission
@@ -1448,6 +1460,14 @@ Public Class POS
 
             If PaymentTotal() <> Val(lblBillAmt.Text) Then
                 If NewPaymentMode Then
+                    If Edit Or BillMode = 1 Then
+                        If customerId > 1 Then
+                            PnlPaymentNew.Visible = True
+                            PnlPaymentNew.BringToFront()
+                            TxtCashNew.Focus()
+                            Exit Sub
+                        End If
+                    End If
                     PnlCustomerInfo.Visible = True
                     PnlCustomerInfo.BringToFront()
                     TxtCustMobile.Focus()
@@ -1504,9 +1524,13 @@ Public Class POS
         IsBillSaved = False
         IsPresent = False
         customerId = 1
+        UpdateCustomerComboBox()
+        cmbCustomer.SelectedValue = 1
         GenerateBillNo()
         LoadSalesPersons()
         UpdateShopSettings()
+        MobileNo = ""
+        message = ""
 
         HoldID.Clear()
         TGPmt.Rows.Clear()
@@ -1710,6 +1734,12 @@ Public Class POS
         End If
 
         Dim CName = InputBox("Enter customer name for this HOLD Bill...?")
+        If CName.Trim = String.Empty Then
+            TTip.Show("Please enter customer name..!", btnHold, 0, 25, 2000)
+            Exit Sub
+        End If
+
+
         HoldBill(CName)
 
     End Sub
@@ -1960,6 +1990,7 @@ Public Class POS
                 BillNo = .Item(1)
                 lblBillNo.Text = nTermID & "/" & BillNo
                 cmbCustomer.SelectedValue = .Item(2)
+                customerId = .Item(2)
                 billDt = .GetDateTime(4).Date
                 billTime = .GetDateTime(5)
             End If
@@ -2013,7 +2044,7 @@ Public Class POS
                 BillID = .Item(0)
                 BillNo = .Item(1)
                 lblBillNo.Text = nTermID & "/" & BillNo
-                'cmbCustomer.SelectedValue = .Item(2)
+                cmbCustomer.SelectedValue = .Item(2)
                 customerId = .Item(2)
             End If
             .Close()
@@ -2078,6 +2109,17 @@ Public Class POS
 
         lblHead.Text = "  ePOS - Exchange Mode"
         Edit = False
+
+        SQL = "select customerid from billmaster where shopid = " & ShopID & " and billid=" & Val(TGBills.Item(0, TGBills.CurrentRow.Index).Value) & ";"
+
+        With ESSA.OpenReader(SQL)
+            If .Read Then
+                cmbCustomer.SelectedValue = .Item(0)
+                customerId = .Item(0)
+            End If
+            .Close()
+        End With
+
         Dim iSno As SByte = 0
 
         For i As Short = 0 To TGEdt.Rows.Count - 1
@@ -2395,7 +2437,7 @@ Public Class POS
 
         Try
 
-            SQL = "update productmaster set retailprice=" & Val(txtNewRate.Text) & " where plucode='" & txtruCode.Text.Trim & "'"
+            SQL = "update pricemaster set retailprice=" & Val(txtNewRate.Text) & " where shopid = " & ShopID & " and pluid = ANY (select pluid from productmaster where plucode='" & txtruCode.Text.Trim & "')"
             Cmd.CommandText = SQL
             Cmd.ExecuteNonQuery()
 
@@ -3366,6 +3408,8 @@ Public Class POS
 
     End Sub
 
+    Private MobileNo As String = ""
+
     Private Sub BtnCustSave_Click(sender As Object, e As EventArgs) Handles BtnCustSave.Click
 
         If TxtCustMobile.Text = String.Empty Or TxtCustMobile.Text.Length <> 10 Then
@@ -3400,13 +3444,21 @@ Public Class POS
 
             Else
 
-                SQL = $"UPDATE Customers 
-                SET CustomerName = '{TxtCustName.Text.Trim}'
-                WHERE CustomerID = {customerId}"
+                If Not customerId = 1 Then
 
-                ESSA.Execute(SQL)
+                    SQL = $"UPDATE Customers 
+                    SET CustomerName = '{TxtCustName.Text.Trim}'
+                    WHERE CustomerID = {customerId}"
+
+                    ESSA.Execute(SQL)
+
+                End If
+
 
             End If
+
+            MobileNo = TxtCustMobile.Text.Trim
+            UpdateCustomerComboBox()
 
             PnlPaymentNew.Visible = True
             PnlPaymentNew.BringToFront()
@@ -3419,6 +3471,13 @@ Public Class POS
             PnlLoading.Visible = False
             Exit Sub
         End Try
+
+    End Sub
+
+    Private Sub UpdateCustomerComboBox()
+
+        SQL = "SELECT CUSTOMERID,CUSTOMERNAME FROM CUSTOMERS ORDER BY CUSTOMERID"
+        ESSA.LoadCombo(cmbCustomer, SQL, "CUSTOMERNAME", "CUSTOMERID")
 
     End Sub
 
@@ -3595,5 +3654,121 @@ Public Class POS
         End With
 
     End Sub
+
+    Private SmsApiUrl As String = ""
+    Private messageTemplate As String = ""
+    Private message As String = ""
+
+    Private Async Function SendSmsAsync(CustMobileNo As String, ShopName As String, Billdate As String, ShopNumber As String) As Task(Of String)
+
+        Dim httpClient As New HttpClient()
+        Dim url As String
+
+        message = Replace(messageTemplate, "@shop", ShopName)
+        message = Replace(message, "@date", Billdate)
+        message = Replace(message, "@mobile", ShopNumber)
+
+        Try
+            SmsApiUrl = SmsApiUrl.Replace("@PhNo", CustMobileNo)
+            url = SmsApiUrl.Replace("@Text", message)
+
+            Dim response As HttpResponseMessage = Await httpClient.GetAsync(url)
+            'Dim responseContent As String = Await response.Content.ReadAsStringAsync()
+            'MessageBox.Show("Message Sent Successfully. API Response: " & responseContent)
+
+            If response.IsSuccessStatusCode Then
+                Return "Sent Successfully"
+            Else
+                Return "Failed"
+            End If
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Critical)
+            Return "Failed"
+        End Try
+    End Function
+
+    Private Async Function GetSMSApiSettings() As Task
+
+        Dim Username As String = ""
+        Dim Password As String = ""
+
+        Username = Await ESSA.GenerateData("select param_value from settings where param_name='SMSApiUN'")
+        Password = Await ESSA.GenerateData("select param_value from settings where param_name='SMSApiPW'")
+        messageTemplate = Await ESSA.GenerateData("select template from sms_templates where purpose = 'BILL'")
+        SmsApiUrl = Await ESSA.GenerateData("select param_value from settings where param_name='SMSApi'")
+
+        SmsApiUrl = Replace(SmsApiUrl, "@ID", Username)
+        SmsApiUrl = Replace(SmsApiUrl, "@Pwd", Password)
+
+    End Function
+
+    Private Sub SendSms(MobileNo As String, ShopName As String, Billdate As String)
+
+        Dim request As HttpWebRequest
+        Dim response As HttpWebResponse = Nothing
+        Dim url As String
+
+        Dim message As String = Replace(messageTemplate, "@shop", ShopName)
+        message = Replace(messageTemplate, "@date", Billdate)
+        Replace(messageTemplate, "@mobile", MobileNo)
+
+        Try
+
+            SmsApiUrl = Replace(SmsApiUrl, "@PhNo", MobileNo)
+            url = Replace(SmsApiUrl, "@Text", message)
+
+            request = DirectCast(WebRequest.Create(url), HttpWebRequest)
+            response = DirectCast(request.GetResponse(), HttpWebResponse)
+
+        Catch ex As Exception
+
+            MsgBox(ex.Message, MsgBoxStyle.Critical)
+            Exit Sub
+
+        End Try
+
+        If response.StatusCode = HttpStatusCode.OK Then
+            MsgBox("Message Sent Successfully..!")
+        End If
+
+        response.Close()
+
+    End Sub
+
+    Private Async Function SendSmsAsync2(MobileNo As String, ShopName As String, Billdate As String) As Task(Of String)
+
+
+        Dim url As String = ""
+
+        Dim message As String = $"Dear Customer, Thank you for your purchase at {ShopName} on {Billdate}, " &
+                            "We hope you enjoy your new purchase! -ESSA GARMENTS PRIVATE LIMITED"
+
+        Try
+
+            SmsApiUrl = Replace(SmsApiUrl, "@PhNo", MobileNo)
+            url = Replace(SmsApiUrl, "@Text", message)
+
+            Dim request As HttpWebRequest = CType(WebRequest.Create(url), HttpWebRequest)
+            request.Method = "GET"
+
+            Using response As HttpWebResponse = CType(Await request.GetResponseAsync(), HttpWebResponse)
+                Dim responseStream As Stream = response.GetResponseStream()
+                Dim reader As New StreamReader(responseStream)
+                Dim responseContent As String = Await reader.ReadToEndAsync()
+
+                If response.StatusCode = HttpStatusCode.OK Then
+                    MessageBox.Show("Message Sent Successfully. API Response: " & responseContent)
+                    Return "Sent Successfully"
+                Else
+                    MessageBox.Show("Message Sending Failed. API Response: " & responseContent)
+                    Return "Failed"
+                End If
+            End Using
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Critical)
+            Return "Failed"
+        End Try
+    End Function
+
 
 End Class
