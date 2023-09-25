@@ -405,4 +405,67 @@ Public Class ESSA
 
     End Function
 
+    Public Shared Async Function OpenReaderAsync(ByVal Qry As String) As Task(Of SqlDataReader)
+
+        OpenConnection()
+
+        Try
+            Using Cmd As New SqlCommand(Qry, Con)
+                Return Await Cmd.ExecuteReaderAsync(CommandBehavior.CloseConnection)
+            End Using
+        Catch ex As SqlException
+            Con.Close()
+            MsgBox(ex.Message, MsgBoxStyle.Critical)
+            Return Nothing
+        End Try
+
+    End Function
+
+    Public Shared Async Function LoadComboAsync(ByVal Cmb As ComboBox, ByVal Qry As String, ByVal Name As String, Optional ByVal ID As String = "", Optional ByVal Header As String = "") As Task
+
+        Cmb.DataSource = Nothing
+        Using nCon As New SqlConnection(ConStr)
+            nCon.Open()
+            Using Adp As New SqlDataAdapter(Qry, nCon)
+                Using Tbl As New DataSet
+                    Await Task.Run(Sub() Adp.Fill(Tbl))
+
+                    If Header <> "" Then
+                        Dim Tr As DataRow
+                        Tr = Tbl.Tables(0).NewRow
+                        Tr(Name) = Header
+                        Tbl.Tables(0).Rows.InsertAt(Tr, 0)
+                    End If
+
+                    Cmb.DataSource = Tbl.Tables(0)
+                    Cmb.DisplayMember = Name
+                    Cmb.ValueMember = ID
+                End Using
+            End Using
+            nCon.Close()
+        End Using
+
+    End Function
+
+    Public Shared Async Function GenerateIDAsync(ByVal Qry As String) As Task(Of Integer)
+
+        Try
+            OpenConnection()
+            Using Cmd As New SqlCommand(Qry, Con)
+                Dim Tmp = Await Cmd.ExecuteScalarAsync
+                If IsDBNull(Tmp) = False Then
+                    Return CInt(Tmp) + 1
+                Else
+                    Return 1
+                End If
+            End Using
+            Con.Close()
+        Catch ex As Exception
+            Con.Close()
+            MsgBox(ex.Message, MsgBoxStyle.Critical)
+            Return Nothing
+        End Try
+
+    End Function
+
 End Class

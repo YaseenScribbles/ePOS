@@ -408,7 +408,7 @@ Public Class POS
 
         'For New Shop Settings
 
-        UpdateShopSettings()
+        Await UpdateShopSettings()
 
         GetShopAddress()
 
@@ -419,7 +419,7 @@ Public Class POS
         lblBillDt.Text = Format(Now.Date, "dd-MMM-yyyy")
         Label26.Text = ShopNm.ToUpper
 
-        GenerateBillNo()
+        Await GenerateBillNo()
 
         SimpleLine3.Height = 130
         SimpleLine4.Height = 130
@@ -470,20 +470,20 @@ Public Class POS
         mebRPFrom.Value = SDate
         mebRPTo.Value = EDate
 
-        LoadSalesPersons()
+        Await LoadSalesPersons()
 
         Await GetSMSApiSettings()
 
     End Sub
 
-    Private Sub LoadSalesPersons()
+    Private Async Function LoadSalesPersons() As Task
 
         'Adding SPID FROM SalesPersons
 
         SQL = "SELECT SPId,SPCode FROM SalesPersons where shopid = " & ShopID & ""
         DgvSP.Rows.Clear()
-        With ESSA.OpenReader(SQL)
-            While .Read()
+        With Await ESSA.OpenReaderAsync(SQL)
+            While Await .ReadAsync()
                 DgvSP.Rows.Add()
                 DgvSP.Item(1, DgvSP.Rows.Count - 1).Value = .Item(0)
                 DgvSP.Item(0, DgvSP.Rows.Count - 1).Value = .Item(1)
@@ -491,7 +491,7 @@ Public Class POS
             .Close()
         End With
 
-    End Sub
+    End Function
 
     Private Sub btnHide_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnHide.Click
 
@@ -953,11 +953,11 @@ Public Class POS
 
     End Sub
 
-    Private Sub btnReset_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReset.Click
+    Private Async Sub btnReset_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReset.Click
 
         'LoadHoldBills()
         'LoadProductList()
-        RefreshBill()
+        Await RefreshBill()
 
     End Sub
 
@@ -977,7 +977,7 @@ Public Class POS
 
     End Sub
 
-    Private Sub GenerateBillNo()
+    Private Async Function GenerateBillNo() As Task
 
         'SQL = "select max(billid) from billmaster"
         'BillID = ESSA.GenerateID(SQL)
@@ -1001,13 +1001,13 @@ Public Class POS
 
         SQL = "select max(billno) from billmaster where shopid = " & ShopID & " and termid=" & TermID & " and billdt between '" _
             & Format(SDate, "yyyy-MM-dd") & "' and '" & Format(EDate, "yyyy-MM-dd") & "'"
-        BillNo = ESSA.GenerateID(SQL)
+        BillNo = Await ESSA.GenerateIDAsync(SQL)
         lblBillNo.Text = TermID & "/" & BillNo
 
         Dim billCode = Format(SDate, "yy") & Format(EDate, "yy") & Format(ShopID, "00") & Format(TermID, "00") & Format(BillNo, "000000")
         BillID = CLng(billCode)
 
-    End Sub
+    End Function
 
     Public Function PaymentTotal() As Double
 
@@ -1018,7 +1018,7 @@ Public Class POS
 
     End Function
 
-    Private Sub HoldBill(Optional CsName As String = "")
+    Private Async Sub HoldBill(Optional CsName As String = "")
 
         Dim iHoldID As Integer = 0
 
@@ -1077,12 +1077,12 @@ Public Class POS
             'PrintHoldBill(iHoldID, "ESTIMATE")
             PrintHoldBillUsingCrystalReports(iHoldID)
         End If
-        RefreshBill()
+        Await RefreshBill()
         LoadHoldBills()
 
     End Sub
 
-    Public Async Sub SaveBill()
+    Public Async Function SaveBill() As Task
 
         ESSA.OpenConnection()
         Dim Cmd = Con.CreateCommand
@@ -1095,7 +1095,7 @@ Public Class POS
 
                 nTermID = TermID
 
-                GenerateBillNo()
+                Await GenerateBillNo()
 
                 If HoldID.Count > 0 Then
                     Dim HoldIdList As String = ""
@@ -1105,7 +1105,7 @@ Public Class POS
                     HoldIdList = Mid(HoldIdList, 1, HoldIdList.Length - 1)
                     SQL = "delete from billdetailshold where shopid = " & ShopID & " and billid in (" & HoldIdList & ")"
                     Cmd.CommandText = SQL
-                    Cmd.ExecuteNonQuery()
+                    Await Cmd.ExecuteNonQueryAsync()
                 End If
 
             Else
@@ -1116,7 +1116,7 @@ Public Class POS
                    & "delete from billsalepersons where shopid = " & ShopID & " and billid=" & BillID & ";"
 
                 Cmd.CommandText = SQL
-                Cmd.ExecuteNonQuery()
+                Await Cmd.ExecuteNonQueryAsync()
 
             End If
 
@@ -1137,7 +1137,7 @@ Public Class POS
                 & UserID & ",0,1)"
 
             Cmd.CommandText = SQL
-            Cmd.ExecuteNonQuery()
+            Await Cmd.ExecuteNonQueryAsync()
 
             For i As Short = 0 To TG.Rows.Count - 1
 
@@ -1158,7 +1158,7 @@ Public Class POS
                     & i + 1 & ",0,1);"
 
                 Cmd.CommandText = SQL
-                Cmd.ExecuteNonQuery()
+                Await Cmd.ExecuteNonQueryAsync()
 
                 SQL = "INSERT INTO BillSalePersons VALUES(" _
                     & BillID & "," _
@@ -1167,7 +1167,7 @@ Public Class POS
                     & ShopID & ")"
 
                 Cmd.CommandText = SQL
-                Cmd.ExecuteNonQuery()
+                Await Cmd.ExecuteNonQueryAsync()
 
             Next
 
@@ -1191,7 +1191,7 @@ Public Class POS
                     1)"
 
                     Cmd.CommandText = SQL
-                    Cmd.ExecuteNonQuery()
+                    Await Cmd.ExecuteNonQueryAsync()
 
                 End If
 
@@ -1214,7 +1214,7 @@ Public Class POS
                     1)"
 
                     Cmd.CommandText = SQL
-                    Cmd.ExecuteNonQuery()
+                    Await Cmd.ExecuteNonQueryAsync()
 
                 End If
 
@@ -1237,7 +1237,7 @@ Public Class POS
                     1)"
 
                     Cmd.CommandText = SQL
-                    Cmd.ExecuteNonQuery()
+                    Await Cmd.ExecuteNonQueryAsync()
 
                 End If
 
@@ -1259,7 +1259,7 @@ Public Class POS
                     & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd")) & "',0,1)"
 
                     Cmd.CommandText = SQL
-                    Cmd.ExecuteNonQuery()
+                    Await Cmd.ExecuteNonQueryAsync()
 
                 Next
 
@@ -1287,15 +1287,15 @@ Public Class POS
             Trn.Rollback()
             Con.Close()
             MsgBox(ex.Message, MsgBoxStyle.Critical)
-            Exit Sub
+            Exit Function
         Catch ex1 As Exception
             MsgBox(ex1.Message, MsgBoxStyle.Critical)
-            Exit Sub
+            Exit Function
         End Try
 
         If chkEP.Checked = True Then
             'PrintBill(BillID, BillType)
-            PrintBillUsingCrystalReport(BillID, "Original")
+            Await PrintBillUsingCrystalReport(BillID, "Original")
         End If
 
         If Not MobileNo.Trim = String.Empty Then
@@ -1305,11 +1305,11 @@ Public Class POS
             End If
         End If
 
-        RefreshBill()
+        Await RefreshBill()
 
-    End Sub
+    End Function
 
-    Private Sub PrintBillUsingCrystalReport(Id As Long, type As String)
+    Private Async Function PrintBillUsingCrystalReport(Id As Long, type As String) As Task
 
         'Dim rpt As New SaleBill
         Dim ShopName As String = String.Empty
@@ -1317,8 +1317,8 @@ Public Class POS
         Dim ContactNo As String = String.Empty
         Dim GST As String = String.Empty
         SQL = $"select shopname,address1 + ' ' + address2 + ' ' + city + ' ' +  state address,phone,cst from shops where shopid = {ShopID}"
-        With ESSA.OpenReader(SQL)
-            If .Read Then
+        With Await ESSA.OpenReaderAsync(SQL)
+            If Await .ReadAsync Then
                 ShopName = .Item("shopname").trim
                 Address = .Item("address").trim
                 ContactNo = .Item("phone").trim
@@ -1346,7 +1346,7 @@ Public Class POS
         ESSA.OpenConnection()
         Using adapter As New SqlDataAdapter(SQL, Con)
             Using table As New DataTable
-                adapter.Fill(table)
+                Await Task.Run(Sub() adapter.Fill(table))
                 rptSaleBill.Subreports.Item("TaxInfo").SetDataSource(table)
             End Using
         End Using
@@ -1360,7 +1360,7 @@ Public Class POS
         ESSA.OpenConnection()
         Using adapter As New SqlDataAdapter(SQL, Con)
             Using table As New DataTable
-                adapter.Fill(table)
+                Await Task.Run(Sub() adapter.Fill(table))
                 rptSaleBill.Subreports.Item("PaymentInfo").SetDataSource(table)
             End Using
         End Using
@@ -1381,7 +1381,7 @@ Public Class POS
         ESSA.OpenConnection()
         Using adapter As New SqlDataAdapter(SQL, Con)
             Using table As New DataTable
-                adapter.Fill(table)
+                Await Task.Run(Sub() adapter.Fill(table))
                 rptSaleBill.SetDataSource(table)
                 rptSaleBill.SetParameterValue("ShopName", ShopName)
                 rptSaleBill.SetParameterValue("Address", Address)
@@ -1418,9 +1418,9 @@ Public Class POS
         End Using
         Con.Close()
 
-    End Sub
+    End Function
 
-    Private Sub btnStore_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnStore.Click
+    Private Async Sub btnStore_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnStore.Click
 
         If TG.Rows.Count = 0 Then
             TTip.Show("No items to generate to bill..!", btnStore, 0, 25, 2000)
@@ -1496,11 +1496,11 @@ Public Class POS
         '    End With
         'End If
 
-        SaveBill()
+        Await SaveBill()
 
     End Sub
 
-    Private Sub RefreshBill()
+    Private Async Function RefreshBill() As Task
 
         If lblHead.Text = "  ePOS - Discount Mode" Then
             GetTheme(2)
@@ -1524,11 +1524,11 @@ Public Class POS
         IsBillSaved = False
         IsPresent = False
         customerId = 1
-        UpdateCustomerComboBox()
+        Await UpdateCustomerComboBox()
         cmbCustomer.SelectedValue = 1
-        GenerateBillNo()
-        LoadSalesPersons()
-        UpdateShopSettings()
+        Await GenerateBillNo()
+        Await LoadSalesPersons()
+        Await UpdateShopSettings()
         MobileNo = ""
         message = ""
 
@@ -1555,7 +1555,7 @@ Public Class POS
         ResetField()
         txtCode.Focus()
 
-    End Sub
+    End Function
 
     Private Sub cmbPmtType_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles cmbPmtType.KeyDown
 
@@ -1639,7 +1639,7 @@ Public Class POS
 
     End Sub
 
-    Private Sub btnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
+    Private Async Sub btnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
 
         If PaymentTotal() >= Val(lblBillAmt.Text) Then
 
@@ -1660,14 +1660,14 @@ Public Class POS
             If EnableRemarks = True Then
 
                 If Remarks.ShowDialog(Me) <> Windows.Forms.DialogResult.Cancel Then
-                    SaveBill()
+                    Await SaveBill()
                 End If
 
             Else
 
                 PnlLoading.Visible = True
                 PnlLoading.BringToFront()
-                SaveBill()
+                Await SaveBill()
                 PnlLoading.Visible = False
 
             End If
@@ -2180,23 +2180,23 @@ Public Class POS
 
     End Sub
 
-    Private Sub PrintBill(ByVal xBillID As Long, ByVal Sts As String, Optional ByVal isReprint As Boolean = False)
+    Private Async Function PrintBill(ByVal xBillID As Long, ByVal Sts As String, Optional ByVal isReprint As Boolean = False) As Task
 
         If DosModePrinter = True Then
             If isReprint = True Then
-                PrintBillUsingCrystalReport(xBillID, "Reprint")
+                Await PrintBillUsingCrystalReport(xBillID, "Reprint")
                 'SendFileToPrinter(xBillID, 1)
             Else
                 SendFileToPrinter(xBillID, Copies)
             End If
-            Exit Sub
+            Exit Function
         End If
 
         If PrintISOn = False Then
             PrintISOn = POSPrinterRT.ConnectToPrinter()
             If PrintISOn = False Then
                 MsgBox("Please restart your application..!", MsgBoxStyle.Information)
-                Exit Sub
+                Exit Function
             End If
         End If
 
@@ -2238,7 +2238,7 @@ Public Class POS
 
         End If
 
-    End Sub
+    End Function
 
     Private Sub PrintHoldBill(ByVal xBillID As Long, ByVal Sts As String)
 
@@ -2293,7 +2293,7 @@ Public Class POS
 
     End Sub
 
-    Private Sub btnRePrintBill_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRePrintBill.Click
+    Private Async Sub btnRePrintBill_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRePrintBill.Click
 
         PnlLoading.Visible = True
         PnlLoading.BringToFront()
@@ -2305,7 +2305,7 @@ Public Class POS
         If BID > 0 Then
             If chkEP.Checked = True Then
                 Try
-                    PrintBill(BID, "Duplicate", True)
+                    Await PrintBill(BID, "Duplicate", True)
                     PnlLoading.Visible = False
                 Catch ex As Exception
                     MsgBox(ex.Message, MsgBoxStyle.Critical)
@@ -3410,7 +3410,7 @@ Public Class POS
 
     Private MobileNo As String = ""
 
-    Private Sub BtnCustSave_Click(sender As Object, e As EventArgs) Handles BtnCustSave.Click
+    Private Async Sub BtnCustSave_Click(sender As Object, e As EventArgs) Handles BtnCustSave.Click
 
         If TxtCustMobile.Text = String.Empty Or TxtCustMobile.Text.Length <> 10 Then
             TTip.Show("Enter Valid Mobile..!", TxtCustMobile, 0, 25, 2000)
@@ -3458,7 +3458,7 @@ Public Class POS
             End If
 
             MobileNo = TxtCustMobile.Text.Trim
-            UpdateCustomerComboBox()
+            Await UpdateCustomerComboBox()
 
             PnlPaymentNew.Visible = True
             PnlPaymentNew.BringToFront()
@@ -3474,12 +3474,12 @@ Public Class POS
 
     End Sub
 
-    Private Sub UpdateCustomerComboBox()
+    Private Async Function UpdateCustomerComboBox() As Task
 
         SQL = "SELECT CUSTOMERID,CUSTOMERNAME FROM CUSTOMERS ORDER BY CUSTOMERID"
-        ESSA.LoadCombo(cmbCustomer, SQL, "CUSTOMERNAME", "CUSTOMERID")
+        Await ESSA.LoadComboAsync(cmbCustomer, SQL, "CUSTOMERNAME", "CUSTOMERID")
 
-    End Sub
+    End Function
 
     Private Sub BtnHideCustomerPnl_Click(sender As Object, e As EventArgs) Handles BtnHideCustomerPnl.Click
 
@@ -3532,7 +3532,7 @@ Public Class POS
 
     End Function
 
-    Private Sub BtnSaveNew_Click(sender As Object, e As EventArgs) Handles BtnSaveNew.Click
+    Private Async Sub BtnSaveNew_Click(sender As Object, e As EventArgs) Handles BtnSaveNew.Click
 
         If CalculateTotalNew() < Val(lblBillAmt.Text) Then
             TTip.Show("Bill value is higher .!", TxtCashNew, 0, 25, 2000)
@@ -3547,7 +3547,7 @@ Public Class POS
 
         PnlLoading.Visible = True
         PnlLoading.BringToFront()
-        SaveBill()
+        Await SaveBill()
         PnlLoading.Visible = False
 
     End Sub
@@ -3638,12 +3638,11 @@ Public Class POS
 
     End Sub
 
-    Private Sub UpdateShopSettings()
+    Private Async Function UpdateShopSettings() As Task
 
         SQL = $"SELECT * FROM ShopSettings WHERE ShopID = {ShopID}"
-        With ESSA.OpenReader(SQL)
-
-            If .Read Then
+        With Await ESSA.OpenReaderAsync(SQL)
+            If Await .ReadAsync Then
                 NewPrintCopies = .Item(1)
                 NewRePrintCopies = .Item(2)
                 NewPrinterName = .GetString(3)
@@ -3653,7 +3652,7 @@ Public Class POS
             .Close()
         End With
 
-    End Sub
+    End Function
 
     Private SmsApiUrl As String = ""
     Private messageTemplate As String = ""
