@@ -1268,6 +1268,7 @@ Public Class POS
 
 
             Trn.Commit()
+            Trn = Nothing
             'IsBillSaved = True
             Con.Close()
 
