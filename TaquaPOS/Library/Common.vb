@@ -38,5 +38,6 @@ Module Common
     Public NewPrinterName As String = ""
     Public NewBusinessDate As Date
     Public NewPaymentMode As Boolean = True
+    Public alterPwd As String
 
 End Module

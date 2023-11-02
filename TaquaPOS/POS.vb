@@ -30,11 +30,14 @@ Public Class POS
     Private TempFilePath As String = ""
     Private IsBillSaved As Boolean = False
     Private rptSaleBill As New SaleBill
+    Private rptSaleBill4inch As New SaleBill4Inch
     Public customerId As Integer = 1
     Private FreshDiscount As Boolean = False
     Private billDt As Date
     Private billTime As DateTime
     Private shopNumber As String
+    Private is3InchPrinter As Boolean = True
+
 
     Public Sub LoadTheme()
 
@@ -1124,8 +1127,8 @@ Public Class POS
             SQL = "insert into billmaster values (" _
                 & BillID & "," _
                 & BillNo & ",'" _
-                & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd")) & "','" _
-                & IIf(ISAdmin, IIf(BillMode = 0 And Edit = False, Format(Now, "yyyy-MM-dd HH:mm:ss"), Format(billTime, "yyyy-MM-dd HH:mm:ss")), Format(Now, "yyyy-MM-dd HH:mm:ss")) & "'," _
+                & IIf(ISAdmin, IIf(BillMode = 0 AndAlso Edit = False, Format(Now.Date, "yyyy-MM-dd"), Format(billDt, "yyyy-MM-dd")), Format(Now.Date, "yyyy-MM-dd")) & "','" _
+                & IIf(ISAdmin, IIf(BillMode = 0 AndAlso Edit = False, Format(Now, "yyyy-MM-dd HH:mm:ss"), Format(billTime, "yyyy-MM-dd HH:mm:ss")), Format(Now, "yyyy-MM-dd HH:mm:ss")) & "'," _
                 & nTermID & "," _
                 & Val(lblQty.Text) & "," _
                 & Val(lblNetAmt.Text) & "," _
@@ -1303,6 +1306,7 @@ Public Class POS
         If Not MobileNo.Trim = String.Empty Then
             If Not MsgBox("Send Sms..?", MsgBoxStyle.Question + MessageBoxButtons.YesNo) = MsgBoxResult.No Then
                 Await SendSmsAsync(MobileNo, ShopNm, Format(Now.Date, "dd-MM-yyyy"), shopNumber)
+                MobileNo = ""
                 'Await SendSmsAsync(MobileNo, ShopNm, Format(Now.Date, "dd-MM-yyyy"))
             End If
         End If
@@ -1314,6 +1318,8 @@ Public Class POS
     Private Async Function PrintBillUsingCrystalReport(Id As Long, type As String) As Task
 
         Try
+
+            Dim rpt = IIf(is3InchPrinter, rptSaleBill, rptSaleBill4inch)
 
             'Dim rpt As New SaleBill
             Dim ShopName As String = String.Empty
@@ -1351,7 +1357,7 @@ Public Class POS
             Using adapter As New SqlDataAdapter(SQL, Con)
                 Using table As New DataTable
                     Await Task.Run(Sub() adapter.Fill(table))
-                    rptSaleBill.Subreports.Item("TaxInfo").SetDataSource(table)
+                    rpt.Subreports.Item("TaxInfo").SetDataSource(table)
                 End Using
             End Using
             'Con.Close()
@@ -1365,7 +1371,7 @@ Public Class POS
             Using adapter As New SqlDataAdapter(SQL, Con)
                 Using table As New DataTable
                     Await Task.Run(Sub() adapter.Fill(table))
-                    rptSaleBill.Subreports.Item("PaymentInfo").SetDataSource(table)
+                    rpt.Subreports.Item("PaymentInfo").SetDataSource(table)
                 End Using
             End Using
             'Con.Close()
@@ -1385,13 +1391,13 @@ Public Class POS
             Using adapter As New SqlDataAdapter(SQL, Con)
                 Using table As New DataTable
                     Await Task.Run(Sub() adapter.Fill(table))
-                    rptSaleBill.SetDataSource(table)
-                    rptSaleBill.SetParameterValue("ShopName", ShopName)
-                    rptSaleBill.SetParameterValue("Address", Address)
-                    rptSaleBill.SetParameterValue("ContactNo", ContactNo)
-                    rptSaleBill.SetParameterValue("GST", GST)
+                    rpt.SetDataSource(table)
+                    rpt.SetParameterValue("ShopName", ShopName)
+                    rpt.SetParameterValue("Address", Address)
+                    rpt.SetParameterValue("ContactNo", ContactNo)
+                    rpt.SetParameterValue("GST", GST)
                     'rptSaleBill.SetParameterValue("BillType", type)
-                    rptSaleBill.PrintOptions.PrinterName = PrinterName
+                    rpt.PrintOptions.PrinterName = PrinterName
                     'FrmReportViewer.CrystalReportViewer1.ReportSource = rpt
                     'FrmReportViewer.Visible = False
                     'FrmReportViewer.Show()
@@ -1405,21 +1411,21 @@ Public Class POS
             Dim printThread As New Thread(Sub()
                                               Try
                                                   If type = "Reprint" Then
-                                                      rptSaleBill.SetParameterValue("BillType", "Duplicate")
+                                                      rpt.SetParameterValue("BillType", "Duplicate")
                                                       If NewRePrintCopies = 1 Then
-                                                          rptSaleBill.PrintToPrinter(1, False, 0, 0)
+                                                          rpt.PrintToPrinter(1, False, 0, 0)
                                                       ElseIf NewRePrintCopies = 2 Then
-                                                          rptSaleBill.PrintToPrinter(1, False, 0, 0)
-                                                          rptSaleBill.PrintToPrinter(1, False, 0, 0)
+                                                          rpt.PrintToPrinter(1, False, 0, 0)
+                                                          rpt.PrintToPrinter(1, False, 0, 0)
                                                       End If
                                                   Else
-                                                      rptSaleBill.SetParameterValue("BillType", "Original")
+                                                      rpt.SetParameterValue("BillType", "Original")
                                                       If NewPrintCopies = 1 Then
-                                                          rptSaleBill.PrintToPrinter(1, False, 0, 0)
+                                                          rpt.PrintToPrinter(1, False, 0, 0)
                                                       ElseIf NewPrintCopies = 2 Then
-                                                          rptSaleBill.PrintToPrinter(1, False, 0, 0)
-                                                          rptSaleBill.SetParameterValue("BillType", "Duplicate")
-                                                          rptSaleBill.PrintToPrinter(1, False, 0, 0)
+                                                          rpt.PrintToPrinter(1, False, 0, 0)
+                                                          rpt.SetParameterValue("BillType", "Duplicate")
+                                                          rpt.PrintToPrinter(1, False, 0, 0)
                                                       End If
                                                   End If
                                               Catch ex As Exception
@@ -1544,6 +1550,8 @@ Public Class POS
         Await GenerateBillNo()
         Await LoadSalesPersons()
         Await UpdateShopSettings()
+        billDt = Format(Now.Date, "yyyy-MM-dd")
+        billTime = Format(Now, "yyyy-MM-dd HH:mm:ss")
         MobileNo = ""
         message = ""
 
@@ -1987,6 +1995,16 @@ Public Class POS
                 MsgBox("The alteration has been blocked to this bill..!", MsgBoxStyle.Information)
                 Exit Sub
             End If
+
+            If alterPwd <> String.Empty Then
+                Dim result = AlterPassword.ShowDialog(Me)
+                If result = 2 Then
+                    If Not AlterPassword.isAllowed Then
+                        Exit Sub
+                    End If
+                End If
+            End If
+
         End If
 
         Edit = True
@@ -2061,6 +2079,8 @@ Public Class POS
                 lblBillNo.Text = nTermID & "/" & BillNo
                 cmbCustomer.SelectedValue = .Item(2)
                 customerId = .Item(2)
+                billDt = Format(Now.Date, "yyyy-MM-dd")
+                billTime = Format(Now, "yyyy-MM-dd HH:mm:ss")
             End If
             .Close()
         End With
@@ -2131,6 +2151,8 @@ Public Class POS
             If .Read Then
                 cmbCustomer.SelectedValue = .Item(0)
                 customerId = .Item(0)
+                billDt = Format(Now.Date, "yyyy-MM-dd")
+                billTime = Format(Now, "yyyy-MM-dd HH:mm:ss")
             End If
             .Close()
         End With
@@ -3663,6 +3685,8 @@ Public Class POS
                 NewPrinterName = .GetString(3)
                 NewBusinessDate = .GetDateTime(4).Date
                 NewPaymentMode = .Item(5)
+                is3InchPrinter = .Item(6)
+                alterPwd = .GetString(7).Trim
             End If
             .Close()
         End With
@@ -3676,21 +3700,21 @@ Public Class POS
     Private Async Function SendSmsAsync(CustMobileNo As String, ShopName As String, Billdate As String, ShopNumber As String) As Task(Of String)
 
         Dim httpClient As New HttpClient()
-        Dim url As String
 
         message = Replace(messageTemplate, "@shop", ShopName)
         message = Replace(message, "@date", Billdate)
         message = Replace(message, "@mobile", ShopNumber)
 
         Try
-            SmsApiUrl = SmsApiUrl.Replace("@PhNo", CustMobileNo)
-            url = SmsApiUrl.Replace("@Text", message)
+            Dim url As String = SmsApiUrl.Replace("@PhNo", CustMobileNo)
+            Dim finalURL As String = url.Replace("@Text", message)
 
-            Dim response As HttpResponseMessage = Await httpClient.GetAsync(url)
+            Dim response As HttpResponseMessage = Await httpClient.GetAsync(finalURL)
             'Dim responseContent As String = Await response.Content.ReadAsStringAsync()
             'MessageBox.Show("Message Sent Successfully. API Response: " & responseContent)
 
             If response.IsSuccessStatusCode Then
+                CustMobileNo = ""
                 Return "Sent Successfully"
             Else
                 Return "Failed"

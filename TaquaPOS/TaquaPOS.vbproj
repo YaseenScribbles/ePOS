@@ -115,6 +115,12 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlterPassword.Designer.vb">
+      <DependentUpon>AlterPassword.vb</DependentUpon>
+    </Compile>
+    <Compile Include="AlterPassword.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="AmountDiscount.Designer.vb">
       <DependentUpon>AmountDiscount.vb</DependentUpon>
     </Compile>
@@ -221,11 +227,19 @@
     <Compile Include="Remarks.Designer.vb">
       <DependentUpon>Remarks.vb</DependentUpon>
     </Compile>
-    <Compile Include="Remarks.vb" />
+    <Compile Include="Remarks.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Reports.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reports.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\SaleBill4Inch.vb">
+      <DependentUpon>SaleBill4Inch.rpt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="RptHoldBill.vb">
       <AutoGen>True</AutoGen>
@@ -254,6 +268,9 @@
     <Compile Include="Theme.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="AlterPassword.resx">
+      <DependentUpon>AlterPassword.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AmountDiscount.resx">
       <DependentUpon>AmountDiscount.vb</DependentUpon>
     </EmbeddedResource>
@@ -302,6 +319,10 @@
     <EmbeddedResource Include="Remarks.resx">
       <DependentUpon>Remarks.vb</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Reports\SaleBill4Inch.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>SaleBill4Inch.vb</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="RptHoldBill.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>RptHoldBill.vb</LastGenOutput>
@@ -348,6 +369,7 @@
   <ItemGroup>
     <Service Include="{C0C07587-41A7-46C8-8FBD-3F9C8EBE2DDC}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
