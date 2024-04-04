@@ -1430,35 +1430,33 @@ Public Class POS
                     'End If
                 End Using
             End Using
-            Dim printThread As New Thread(Sub()
-                                              Try
-                                                  If type = "Reprint" Then
-                                                      rpt.SetParameterValue("BillType", "Duplicate")
-                                                      If NewRePrintCopies = 1 Then
-                                                          rpt.PrintToPrinter(1, False, 0, 0)
-                                                      ElseIf NewRePrintCopies = 2 Then
-                                                          rpt.PrintToPrinter(1, False, 0, 0)
-                                                          rpt.PrintToPrinter(1, False, 0, 0)
-                                                      End If
-                                                  Else
-                                                      rpt.SetParameterValue("BillType", "Original")
-                                                      If NewPrintCopies = 1 Then
-                                                          rpt.PrintToPrinter(1, False, 0, 0)
-                                                      ElseIf NewPrintCopies = 2 Then
-                                                          rpt.PrintToPrinter(1, False, 0, 0)
-                                                          rpt.SetParameterValue("BillType", "Duplicate")
-                                                          rpt.PrintToPrinter(1, False, 0, 0)
-                                                      End If
-                                                  End If
-                                              Catch ex As Exception
-                                                  MsgBox(ex.Message, MsgBoxStyle.Critical)
-                                              End Try
-                                          End Sub)
+            Try
+                If type = "Reprint" Then
+                    rpt.SetParameterValue("BillType", "Duplicate")
+                    If NewRePrintCopies = 1 Then
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                    ElseIf NewRePrintCopies = 2 Then
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                    End If
+                Else
+                    rpt.SetParameterValue("BillType", "Original")
+                    If NewPrintCopies = 1 Then
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                    ElseIf NewPrintCopies = 2 Then
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                        rpt.SetParameterValue("BillType", "Duplicate")
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                    End If
+                End If
+            Catch ex As Exception
+                MsgBox(ex.Message, MsgBoxStyle.Critical)
+            End Try
             Con.Close()
 
-            printThread.Start()
         Catch ex As Exception
             MsgBox(ex.Message, MsgBoxStyle.Critical)
+            Con.Close()
         End Try
 
     End Function
@@ -3843,5 +3841,7 @@ Public Class POS
             Return "Failed"
         End Try
     End Function
+
+
 
 End Class
