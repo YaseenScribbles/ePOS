@@ -40,6 +40,8 @@ Public Class Settings
 
         ApplyTheme()
 
+        btnUpdate.Enabled = ISAdmin
+
         cmbBillFormat.SelectedIndex = 0
 
         SQL = "select * from settings order by param_name"
