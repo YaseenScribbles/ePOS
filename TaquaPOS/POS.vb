@@ -1407,7 +1407,8 @@ Public Class POS
             from billdetails d 
             inner join billmaster m on m.billid = d.billid and m.billid = {Id}
             inner join productmaster p on p.pluid = d.pluid
-            inner join customers c on c.customerid = m.customerid"
+            inner join customers c on c.customerid = m.customerid
+            order by d.sno"
 
             'ESSA.OpenConnection()
             Using adapter As New SqlDataAdapter(SQL, Con)
@@ -1418,7 +1419,7 @@ Public Class POS
                     rpt.SetParameterValue("Address", Address)
                     rpt.SetParameterValue("ContactNo", ContactNo)
                     rpt.SetParameterValue("GST", GST)
-                    'rptSaleBill.SetParameterValue("BillType", type)
+                    'rptSaleBill.SetParameterValue("BillType", "Duplicate")
                     rpt.PrintOptions.PrinterName = PrinterName
                     'FrmReportViewer.CrystalReportViewer1.ReportSource = rpt
                     'FrmReportViewer.Visible = False
