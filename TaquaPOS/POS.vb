@@ -1919,7 +1919,7 @@ Public Class POS
             'SERVER ABU
             'SQL = "select d.pluid,d.sno,p.plucode,p.pluname,p.units,d.qty,d.rate,d.disperc,d.disamt,d.amount,d.rate from billdetails d,productmaster p where d.pluid=p.pluid and d.billid=" & TGBills.Item(0, TGBills.CurrentRow.Index).Value & " order by d.sno"
 
-            SQL = "select a.*,isnull(b.spcode,1) from (select d.pluid,d.sno,p.plucode,p.pluname,p.units,d.qty,d.rate,d.disperc,d.disamt,d.amount,d.billid from billdetails d,productmaster p where d.pluid=p.pluid and d.billid=" & TGBills.Item(0, TGBills.CurrentRow.Index).Value & ") a left join (select sp.pluid,sp.billid,sp.spid,s.spcode from billsalepersons sp inner join salespersons s on sp.spid = s.spid and sp.shopid = " & ShopID & ") b on b.billid = a.billid and b.pluid = a.pluid order by a.sno"
+            SQL = "select a.*,isnull(b.spcode,1) from (select d.pluid,d.sno,p.plucode,p.pluname,p.units,d.qty,d.rate,d.disperc,d.disamt,d.amount,d.billid from billdetails d,productmaster p where d.pluid=p.pluid and d.billid=" & TGBills.Item(0, TGBills.CurrentRow.Index).Value & ") a left join (select sp.pluid,sp.billid,sp.spid,s.spcode from billsalepersons sp inner join salespersons s on sp.spid = s.spcode and sp.shopid = " & ShopID & ") b on b.billid = a.billid and b.pluid = a.pluid order by a.sno"
 
             With ESSA.OpenReader(SQL)
                 While .Read
@@ -2047,7 +2047,7 @@ Public Class POS
         '    & "select d.pluid,d.sno,p.plucode,p.pluname,p.units,d.qty,d.orate,d.disperc,d.disamt,d.amount,d.rate,(v.stock+d.qty) stk from billdetails d,productmaster p,v_stockpos v where d.pluid=v.pluid and d.pluid=p.pluid and d.billid=" & TGBills.Item(0, TGBills.CurrentRow.Index).Value & " order by d.sno"
 
         SQL = "select billid,billno,customerid,termid,billdt,billtime from billmaster where shopid = " & ShopID & " and billid=" & Val(TGBills.Item(0, TGBills.CurrentRow.Index).Value) & ";" _
-            & "select a.*,isnull(b.spcode,1) from (select d.pluid,d.sno,p.plucode,p.pluname,p.units,d.qty,d.orate,d.disperc,d.disamt,d.amount,d.rate,(v.stock+d.qty) stk,d.billid from billdetails d,productmaster p,v_stockpos v where d.shopid = " & ShopID & " and v.location_id = " & ShopID & " and d.pluid=v.pluid and d.pluid=p.pluid and d.billid=" & TGBills.Item(0, TGBills.CurrentRow.Index).Value & ")a left join (select bsp.billid,bsp.pluid,bsp.spid,sp.spcode from billsalepersons bsp inner join salespersons sp on sp.spid = bsp.spid and bsp.shopid = " & ShopID & ") b on b.billid = a.billid and b.pluid = a.pluid order by a.sno"
+            & "select a.*,isnull(b.spcode,1) from (select d.pluid,d.sno,p.plucode,p.pluname,p.units,d.qty,d.orate,d.disperc,d.disamt,d.amount,d.rate,(v.stock+d.qty) stk,d.billid from billdetails d,productmaster p,v_stockpos v where d.shopid = " & ShopID & " and v.location_id = " & ShopID & " and d.pluid=v.pluid and d.pluid=p.pluid and d.billid=" & TGBills.Item(0, TGBills.CurrentRow.Index).Value & ")a left join (select bsp.billid,bsp.pluid,bsp.spid,sp.spcode from billsalepersons bsp inner join salespersons sp on sp.spcode = bsp.spid and bsp.shopid = " & ShopID & ") b on b.billid = a.billid and b.pluid = a.pluid order by a.sno"
 
         With ESSA.OpenReader(SQL)
             If .Read Then
