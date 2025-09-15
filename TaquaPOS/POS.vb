@@ -1375,6 +1375,7 @@ Public Class POS
             Dim Address As String = String.Empty
             Dim ContactNo As String = String.Empty
             Dim GST As String = String.Empty
+            
             SQL = $"select shopname,address1 + ' ' + address2 + ' ' + city + ' ' +  state address,phone,cst from shops where shopid = {ShopID}"
             With ESSA.OpenReader(SQL)
                 If .Read Then
@@ -1386,6 +1387,24 @@ Public Class POS
                 .Close()
             End With
 
+            'Dim SQL1 = $"select a.taxperc,sum(a.taxable) taxable,sum(tax) tax  from
+            '    (select distinct d.pluid,
+            '    case when d.rate > t.val 
+            '    then t.mx 
+            '    else t.mn end as taxperc,
+            '    case when d.rate > t.val 
+            '    then ROUND((100/(100+t.mx)) * d.amount,2) 
+            '    else ROUND((100/(100+t.mn)) * d.amount,2)  end as taxable,
+            '    case when d.rate > t.val 
+            '    then ROUND(((100/(100+t.mx)) * d.amount)* t.mx * 0.01,2) 
+            '    else ROUND(((100/(100+t.mn)) * d.amount)* t.mn * 0.01,2) end as tax
+            '    from billdetails d 
+            '    inner join billmaster m on m.billid = d.billid and m.shopid = {ShopID} and m.billid = {Id}
+            '    inner join productmaster p on p.pluid = d.pluid
+            '    inner join producttax t on t.hsn = p.hsncode) a
+            '    group by a.taxperc"
+
+            'to work with different tax versions
             Dim SQL1 = $"select a.taxperc,sum(a.taxable) taxable,sum(tax) tax  from
                 (select distinct d.pluid,
                 case when d.rate > t.val 
@@ -1399,8 +1418,8 @@ Public Class POS
                 else ROUND(((100/(100+t.mn)) * d.amount)* t.mn * 0.01,2) end as tax
                 from billdetails d 
                 inner join billmaster m on m.billid = d.billid and m.shopid = {ShopID} and m.billid = {Id}
-                inner join productmaster p on p.pluid = d.pluid
-                inner join producttax t on t.hsn = p.hsncode) a
+                inner join productattributes a on a.pluid = d.pluid
+                inner join producttax t on a.deptid = t.deptid and a.catid = t.catid and a.materialid = t.matid and t.isupdated = {TaxVersion}) a
                 group by a.taxperc"
 
             Dim task1 = Task.Run(Function() ESSA.GetDataTable(SQL1))
@@ -3444,7 +3463,7 @@ Public Class POS
             .Close()
         End With
 
-        SQL = "SELECT * FROM ProductTax WHERE DeptId = " & DeptID & " AND CatId = " & CatId & " AND MatId = " & MatId & ""
+        SQL = "SELECT * FROM ProductTax WHERE DeptId = " & DeptID & " AND CatId = " & CatId & " AND MatId = " & MatId & " AND IsUpdated = " & TaxVersion & ""
 
         With ESSA.OpenReader(SQL)
             If .Read Then

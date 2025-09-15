@@ -39,5 +39,6 @@ Module Common
     Public NewBusinessDate As Date
     Public NewPaymentMode As Boolean = True
     Public alterPwd As String
+    Public TaxVersion As Short = 0
 
 End Module

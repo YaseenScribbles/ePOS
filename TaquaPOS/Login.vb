@@ -45,6 +45,8 @@ Public Class Login
                     HideTerminal = IIf(.GetString(1) = "1", True, False)
                 ElseIf .GetString(0) = "EnableBatchMode" Then
                     EnableBatchMode = IIf(.GetString(1) = "1", True, False)
+                ElseIf .GetString(0) = "TaxVersion" Then
+                    TaxVersion = CShort(.GetString(1))
                 End If
             End While
             .Close()
