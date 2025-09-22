@@ -1454,33 +1454,33 @@ Public Class POS
             rpt.SetParameterValue("ContactNo", ContactNo)
             rpt.SetParameterValue("GST", GST)
             rpt.PrintOptions.PrinterName = PrinterName
-            FrmReportViewer.CrystalReportViewer1.ReportSource = rpt
-            FrmReportViewer.Visible = False
-            FrmReportViewer.Show()
+            'FrmReportViewer.CrystalReportViewer1.ReportSource = rpt
+            'FrmReportViewer.Visible = False
+            'FrmReportViewer.Show()
 
-            'Try
-            '    If type = "Reprint" Then
-            '        rpt.SetParameterValue("BillType", "Duplicate")
-            '        For i = 1 To NewRePrintCopies
-            '            rpt.PrintToPrinter(1, False, 0, 0)
-            '        Next
-            '    Else
-            '        rpt.SetParameterValue("BillType", "Original")
-            '        rpt.PrintToPrinter(1, False, 0, 0)
-            '        If NewPrintCopies = 2 Then
-            '            rpt.SetParameterValue("BillType", "Duplicate")
-            '            rpt.PrintToPrinter(1, False, 0, 0)
-            '        End If
-            '    End If
+            Try
+                If type = "Reprint" Then
+                    rpt.SetParameterValue("BillType", "Duplicate")
+                    For i = 1 To NewRePrintCopies
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                    Next
+                Else
+                    rpt.SetParameterValue("BillType", "Original")
+                    rpt.PrintToPrinter(1, False, 0, 0)
+                    If NewPrintCopies = 2 Then
+                        rpt.SetParameterValue("BillType", "Duplicate")
+                        rpt.PrintToPrinter(1, False, 0, 0)
+                    End If
+                End If
 
-            '    rpt.Close()
-            '    rpt.SetDataSource(CType(Nothing, DataTable))
-            '    rpt.Subreports.Item("TaxInfo").SetDataSource(CType(Nothing, DataTable))
-            '    rpt.Subreports.Item("PaymentInfo").SetDataSource(CType(Nothing, DataTable))
+                rpt.Close()
+                rpt.SetDataSource(CType(Nothing, DataTable))
+                rpt.Subreports.Item("TaxInfo").SetDataSource(CType(Nothing, DataTable))
+                rpt.Subreports.Item("PaymentInfo").SetDataSource(CType(Nothing, DataTable))
 
-            'Catch ex As Exception
-            '    MsgBox(ex.Message, MsgBoxStyle.Critical)
-            'End Try
+            Catch ex As Exception
+                MsgBox(ex.Message, MsgBoxStyle.Critical)
+            End Try
 
         Catch ex As Exception
             MsgBox(ex.Message, MsgBoxStyle.Critical)
@@ -1564,7 +1564,7 @@ Public Class POS
         '    End With
         'End If
 
-        Await SaveBill()
+        Await SaveBillNew()
 
     End Sub
 
