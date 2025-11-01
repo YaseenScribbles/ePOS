@@ -109,6 +109,10 @@ Public Class POS
         lblAlterHead.BackColor = ButtonBackColor
         lblAlterHead.ForeColor = ButtonForeColor
 
+        'To distinguish refund button
+        btnReturn.BackColor = Color.FromArgb(162, 0, 0)
+        btnReturn.FlatAppearance.MouseOverBackColor = Color.FromArgb(192, 0, 0)
+
 
         UpdateGridSelectionColor(TGBills)
         UpdateGridSelectionColor(TGEdt)
@@ -1498,6 +1502,9 @@ Public Class POS
             'cmbCustomer.Focus()
             'Exit Sub
             cmbCustomer.SelectedValue = customerId
+        ElseIf ISReturn And Val(lblBillAmt.Text) >= 0 Then
+            TTip.Show("Reset and try with exchange mode..!", btnStore, 0, 25, 2000)
+            Exit Sub
         End If
 
         '// Insert Items For Sales Commission
@@ -1524,28 +1531,29 @@ Public Class POS
 
             If ISReturn Then
                 TGPmt.Item(4, 0).Value = Format(Val(lblBillAmt.Text), "0.00")
+                TxtCashNew.Text = lblBillAmt.Text
             End If
 
-            If PaymentTotal() <> Val(lblBillAmt.Text) Then
-                If NewPaymentMode Then
-                    If Edit Or BillMode = 1 Then
-                        If customerId > 1 Then
-                            PnlPaymentNew.Visible = True
-                            PnlPaymentNew.BringToFront()
-                            TxtCashNew.Focus()
-                            Exit Sub
-                        End If
+            If CalculateTotalNew() <> Val(lblBillAmt.Text) And NewPaymentMode Then
+                If Edit Or BillMode = 1 Then
+                    If customerId > 1 Then
+                        PnlPaymentNew.Visible = True
+                        PnlPaymentNew.BringToFront()
+                        TxtCashNew.Focus()
+                        Exit Sub
                     End If
-                    PnlCustomerInfo.Visible = True
-                    PnlCustomerInfo.BringToFront()
-                    TxtCustMobile.Focus()
-                    Exit Sub
-                Else
-                    pnlPayment.Visible = True
-                    pnlPayment.BringToFront()
-                    cmbPmtType.Focus()
-                    Exit Sub
                 End If
+                PnlCustomerInfo.Visible = True
+                PnlCustomerInfo.BringToFront()
+                TxtCustMobile.Focus()
+                Exit Sub
+            End If
+
+            If PaymentTotal() <> Val(lblBillAmt.Text) And NewPaymentMode = False Then
+                pnlPayment.Visible = True
+                pnlPayment.BringToFront()
+                cmbPmtType.Focus()
+                Exit Sub
             End If
 
         End If
@@ -2069,6 +2077,7 @@ Public Class POS
         End If
 
         Edit = True
+        lblHead.Text = "  ePOS - Alter Mode"
 
         'SERVER ABU
         'SQL = "select billid,billno,customerid,termid from billmaster where billid=" & Val(TGBills.Item(0, TGBills.CurrentRow.Index).Value) & ";" _
@@ -2126,11 +2135,13 @@ Public Class POS
 
     Private Sub btnReturn_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReturn.Click
 
+        If TGEdt.Rows.Count = 0 Then Exit Sub
+
         BillMode = 2
         ISReturn = True
         BillType = "RETURN BILL"
         Edit = False
-        lblHead.Text = "  ePOS - Return Mode"
+        lblHead.Text = "  ePOS - Refund Mode"
 
         SQL = "select billid,billno,customerid,termid from billmaster where shopid = " & ShopID & " and billid=" & Val(TGBills.Item(0, TGBills.CurrentRow.Index).Value) & ";"
 
@@ -2184,6 +2195,9 @@ Public Class POS
         TGPmt.Item(4, 0).Value = Format(Val(lblBillAmt.Text), "0.00")
         TGPmt.Item(5, 0).Value = 0
 
+        'For new payment method
+        TxtCashNew.Text = lblBillAmt.Text
+
         pnlAlter.Visible = False
         txtCode.Focus()
 
@@ -2203,6 +2217,8 @@ Public Class POS
     End Sub
 
     Private Sub btnExchange_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExchange.Click
+
+        If TGEdt.Rows.Count = 0 Then Exit Sub
 
         BillMode = 1
         BillType = "EXCHANGE BILL"
@@ -4094,7 +4110,7 @@ Public Class POS
 
         Dim orderNo As Byte = 1
         If NewPaymentMode Then
-            If Val(TxtCashNew.Text) > 0 Then
+            If Val(TxtCashNew.Text) > 0 Or ISReturn Then
                 dt.Rows.Add(BillID, ShopID, 1, "CASH", Val(TxtCashNew.Text), Val(LblReturnInCash.Text), "", Now, orderNo, nTermID, IIf(ISAdmin,
                     IIf(BillMode = 0 And Edit = False,
                         Format(Now.Date, "yyyy-MM-dd"),
