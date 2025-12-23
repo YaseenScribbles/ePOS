@@ -135,19 +135,23 @@ Public Class Login
     Private Async Sub btnSettings_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnSettings.Click
 
         SQL = "select password from users where isadmin = 1"
+        Dim isFound As Boolean = False
         With Await ESSA.OpenReaderAsync(SQL)
             While Await .ReadAsync
-                If txtPassword.Text <> ClsEncodeDecode.DCode(.Item(0)) Then
-                    TTip.Show("please enter admin password..!", txtPassword, 0, 25, 2000)
-                    txtPassword.Focus()
-                    Exit Sub
+                If txtPassword.Text = ClsEncodeDecode.DCode(.Item(0)) Then
+                    isFound = True
+                    Exit While
                 End If
             End While
             .Close()
         End With
 
-        POSSettings.Show()
-        Me.Close()
+        If isFound Then
+            POSSettings.Show()
+        Else
+            TTip.Show("please enter admin password..!", txtPassword, 0, 25, 2000)
+            txtPassword.Focus()
+        End If
 
     End Sub
 
