@@ -1379,7 +1379,7 @@ Public Class POS
             Dim Address As String = String.Empty
             Dim ContactNo As String = String.Empty
             Dim GST As String = String.Empty
-            
+
             SQL = $"select shopname,address1 + ' ' + address2 + ' ' + city + ' ' +  state address,phone,cst from shops where shopid = {ShopID}"
             With ESSA.OpenReader(SQL)
                 If .Read Then
@@ -2678,13 +2678,19 @@ Public Class POS
         If Val(txtDP.Text) >= 0 Then
 
             For i As Short = 0 To TG.Rows.Count - 1
-                '0 - Manual discounts only
-                If Val(TG.Item(15, i).Value) = 0 Then
-                    TG.Item(7, i).Value = Format(Val(txtDP.Text), "0.0")
-                    TG.Item(8, i).Value = Format(((Val(TG.Item(5, i).Value) * Val(TG.Item(6, i).Value)) * Val(txtDP.Text)) / 100, "0.00")
-                    TG.Item(9, i).Value = Format((Val(TG.Item(5, i).Value) * Val(TG.Item(6, i).Value)) - Val(TG.Item(8, i).Value), "0.0")
-                    TG.Item(9, i).Value = Format(Math.Round(Val(TG.Item(9, i).Value)), "0.00")
-                    TG.Item(11, i).Value = Format(Val(TG.Item(6, i).Value) - ((Val(TG.Item(6, i).Value) * Val(txtDP.Text)) / 100), "0.00")
+
+                'To skip adding discount to exchange barcodes --IMRAN
+                If Val(TG.Item(5, i).Value) > 0 Then
+
+                    '0 - Manual discounts only
+                    If Val(TG.Item(15, i).Value) = 0 Then
+                        TG.Item(7, i).Value = Format(Val(txtDP.Text), "0.0")
+                        TG.Item(8, i).Value = Format(((Val(TG.Item(5, i).Value) * Val(TG.Item(6, i).Value)) * Val(txtDP.Text)) / 100, "0.00")
+                        TG.Item(9, i).Value = Format((Val(TG.Item(5, i).Value) * Val(TG.Item(6, i).Value)) - Val(TG.Item(8, i).Value), "0.0")
+                        TG.Item(9, i).Value = Format(Math.Round(Val(TG.Item(9, i).Value)), "0.00")
+                        TG.Item(11, i).Value = Format(Val(TG.Item(6, i).Value) - ((Val(TG.Item(6, i).Value) * Val(txtDP.Text)) / 100), "0.00")
+                    End If
+
                 End If
             Next
 
