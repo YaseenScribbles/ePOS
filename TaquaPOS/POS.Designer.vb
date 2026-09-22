@@ -177,6 +177,7 @@ Partial Class POS
         Me.Label20 = New System.Windows.Forms.Label()
         Me.Label19 = New System.Windows.Forms.Label()
         Me.TTip = New System.Windows.Forms.ToolTip(Me.components)
+        Me.btnReturn = New System.Windows.Forms.Button()
         Me.pnlHold = New System.Windows.Forms.TableLayoutPanel()
         Me.Label30 = New System.Windows.Forms.Label()
         Me.TGHold = New System.Windows.Forms.DataGridView()
@@ -218,7 +219,6 @@ Partial Class POS
         Me.btnFilter = New System.Windows.Forms.Button()
         Me.btnAHide = New System.Windows.Forms.Button()
         Me.btnExchange = New System.Windows.Forms.Button()
-        Me.btnReturn = New System.Windows.Forms.Button()
         Me.btnEdit = New System.Windows.Forms.Button()
         Me.Label43 = New System.Windows.Forms.Label()
         Me.TGEdt = New System.Windows.Forms.DataGridView()
@@ -356,8 +356,8 @@ Partial Class POS
         Me.Label84 = New System.Windows.Forms.Label()
         Me.TxtCardNew = New System.Windows.Forms.TextBox()
         Me.Label85 = New System.Windows.Forms.Label()
-        Me.Label83 = New System.Windows.Forms.Label()
         Me.TxtCashNew = New System.Windows.Forms.TextBox()
+        Me.Label83 = New System.Windows.Forms.Label()
         Me.Label78 = New System.Windows.Forms.Label()
         Me.Label86 = New System.Windows.Forms.Label()
         Me.DataGridViewButtonColumn1 = New System.Windows.Forms.DataGridViewButtonColumn()
@@ -1889,6 +1889,22 @@ Partial Class POS
         Me.TTip.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info
         Me.TTip.ToolTipTitle = "Info..!"
         '
+        'btnReturn
+        '
+        Me.btnReturn.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.btnReturn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(CType(CType(197, Byte), Integer), CType(CType(224, Byte), Integer), CType(CType(180, Byte), Integer))
+        Me.btnReturn.FlatAppearance.BorderSize = 0
+        Me.btnReturn.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(CType(CType(112, Byte), Integer), CType(CType(173, Byte), Integer), CType(CType(71, Byte), Integer))
+        Me.btnReturn.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.btnReturn.ForeColor = System.Drawing.Color.White
+        Me.btnReturn.Location = New System.Drawing.Point(435, 402)
+        Me.btnReturn.Name = "btnReturn"
+        Me.btnReturn.Size = New System.Drawing.Size(72, 33)
+        Me.btnReturn.TabIndex = 11
+        Me.btnReturn.Text = "Refund"
+        Me.TTip.SetToolTip(Me.btnReturn, "For Cash Refund")
+        Me.btnReturn.UseVisualStyleBackColor = False
+        '
         'pnlHold
         '
         Me.pnlHold.BackColor = System.Drawing.Color.FromArgb(CType(CType(84, Byte), Integer), CType(CType(130, Byte), Integer), CType(CType(53, Byte), Integer))
@@ -2411,22 +2427,6 @@ Partial Class POS
         Me.btnExchange.TabIndex = 12
         Me.btnExchange.Text = "Exchange"
         Me.btnExchange.UseVisualStyleBackColor = False
-        '
-        'btnReturn
-        '
-        Me.btnReturn.BackColor = System.Drawing.Color.FromArgb(CType(CType(192, Byte), Integer), CType(CType(0, Byte), Integer), CType(CType(0, Byte), Integer))
-        Me.btnReturn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(CType(CType(197, Byte), Integer), CType(CType(224, Byte), Integer), CType(CType(180, Byte), Integer))
-        Me.btnReturn.FlatAppearance.BorderSize = 0
-        Me.btnReturn.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(CType(CType(112, Byte), Integer), CType(CType(173, Byte), Integer), CType(CType(71, Byte), Integer))
-        Me.btnReturn.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnReturn.ForeColor = System.Drawing.Color.White
-        Me.btnReturn.Location = New System.Drawing.Point(435, 402)
-        Me.btnReturn.Name = "btnReturn"
-        Me.btnReturn.Size = New System.Drawing.Size(72, 33)
-        Me.btnReturn.TabIndex = 11
-        Me.btnReturn.Text = "Refund"
-        Me.TTip.SetToolTip(Me.btnReturn, "For Cash Refund")
-        Me.btnReturn.UseVisualStyleBackColor = False
         '
         'btnEdit
         '
@@ -3857,8 +3857,8 @@ Partial Class POS
         Me.Panel9.Controls.Add(Me.Label84)
         Me.Panel9.Controls.Add(Me.TxtCardNew)
         Me.Panel9.Controls.Add(Me.Label85)
-        Me.Panel9.Controls.Add(Me.Label83)
         Me.Panel9.Controls.Add(Me.TxtCashNew)
+        Me.Panel9.Controls.Add(Me.Label83)
         Me.Panel9.Controls.Add(Me.Label78)
         Me.Panel9.Dock = System.Windows.Forms.DockStyle.Fill
         Me.Panel9.Location = New System.Drawing.Point(4, 33)
@@ -3987,6 +3987,15 @@ Partial Class POS
         Me.Label85.TabIndex = 3
         Me.Label85.Text = "CARD"
         '
+        'TxtCashNew
+        '
+        Me.TxtCashNew.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TxtCashNew.Location = New System.Drawing.Point(149, 14)
+        Me.TxtCashNew.Name = "TxtCashNew"
+        Me.TxtCashNew.Size = New System.Drawing.Size(232, 33)
+        Me.TxtCashNew.TabIndex = 0
+        Me.TxtCashNew.Tag = "1"
+        '
         'Label83
         '
         Me.Label83.AutoSize = True
@@ -3996,15 +4005,6 @@ Partial Class POS
         Me.Label83.Size = New System.Drawing.Size(17, 25)
         Me.Label83.TabIndex = 2
         Me.Label83.Text = ":"
-        '
-        'TxtCashNew
-        '
-        Me.TxtCashNew.Font = New System.Drawing.Font("Segoe UI", 14.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.TxtCashNew.Location = New System.Drawing.Point(149, 14)
-        Me.TxtCashNew.Name = "TxtCashNew"
-        Me.TxtCashNew.Size = New System.Drawing.Size(232, 33)
-        Me.TxtCashNew.TabIndex = 0
-        Me.TxtCashNew.Tag = "1"
         '
         'Label78
         '
